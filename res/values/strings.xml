@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">KUAIDI_SPIDER</string>
+    <string name="hello_world"> </string>
+	<string name="decrypt">开始</string>
+</resources>
