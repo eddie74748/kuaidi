@@ -73,7 +73,13 @@ public class KuaidiNearByCarReq {
     
     public String makeBody()
     {
-    	return "{\"lat\":"+lat+",\"lng\":"+lng+",\"num\":\"0\"}";
+    	if(car.equalsIgnoreCase("zhuanche"))
+        {
+        	return "{\"cmd\":50306,\"request\":{\"lng\":" + lng + ",\"lat\":" + lat + "}}";
+        }else
+        {
+        	return "{\"lat\":"+lat+",\"lng\":"+lng+",\"num\":\"0\"}";
+        }
     }
 
     public String makeSign() {
@@ -82,8 +88,7 @@ public class KuaidiNearByCarReq {
         //sign = "cmd:50306{\"lat\":" + 31.276718169934956 + ",\"lng\":" + 120.7579297025087 + ",\"num\":0}";
         if(car.equalsIgnoreCase("zhuanche"))
         {
-        	sign = "{\"cmd\":50306,\"request\":{\"lat\":" + lat + ",\"lng\":" + lng + "}}";
-        	sign = "{\"cmd\":50306,\"request\":{\"lat\":" + 31.276718169934956 + ",\"lng\":" + 120.7579297025087 + "}}";
+        	sign = "{\"cmd\":50306,\"request\":{\"lng\":" + lng + ",\"lat\":" + lat + "}}";
         }
         //return sign;
         String res = JNILib.getSign(sign);

@@ -58,6 +58,7 @@ public class MainActivity extends Activity{
 	Button btn1;
 
 	RandomAccessFile cityPointFile;
+	String car = "zhuanche";
 	
 	int MSG_CITY = 0,
 		MSG_POINT = 1,
@@ -121,11 +122,15 @@ public class MainActivity extends Activity{
     	//Time t = new Time("GMT+8");
 		year = c.get(Calendar.YEAR);
 		month = c.get(Calendar.MONTH) + 1;
-		if(date != c.get(Calendar.DAY_OF_MONTH))
+		/*if(date != c.get(Calendar.DAY_OF_MONTH))
+		{
+			ret = 1;
+		}*/
+		date = c.get(Calendar.DAY_OF_MONTH);
+		if(hour != c.get(Calendar.HOUR_OF_DAY))
 		{
 			ret = 1;
 		}
-		date = c.get(Calendar.DAY_OF_MONTH);
 		hour = c.get(Calendar.HOUR_OF_DAY);
 		/*if(minute != c.get(Calendar.MINUTE))
 		{
@@ -140,11 +145,11 @@ public class MainActivity extends Activity{
 	final LogConfigurator logConfigurator = new LogConfigurator();
 	public void configLog()
 	{	
-		String strDate = "" + year + "_" + month + "_" + date;  
+		String strDate = "" + year + "_" + month + "_" + date + "_" + hour;  
 		
 		
 		//writerConfigurator.setFileName(Environment.getExternalStorageDirectory() + File.separator + "kuaidi.data");
-		logConfigurator.setFileName(Environment.getExternalStorageDirectory() + File.separator + "kuaidi_" + strDate + ".csv");
+		logConfigurator.setFileName(Environment.getExternalStorageDirectory() + File.separator + "kuaidi_" + car + "_" + strDate + ".csv");
 		// Set the root log level
 		//writerConfigurator.setRootLevel(Level.DEBUG);
 		logConfigurator.setRootLevel(Level.DEBUG);
@@ -177,7 +182,7 @@ public class MainActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        kuaidiNearByCarReq = new KuaidiNearByCarReq("zhuanche");
+        kuaidiNearByCarReq = new KuaidiNearByCarReq(car);
         
         textView = (TextView) findViewById(R.id.text);
 		textView2 = (TextView) findViewById(R.id.text2);
@@ -293,9 +298,9 @@ public class MainActivity extends Activity{
 						kuaidiNearByCarReq.setLat(""+j);
 						kuaidiNearByCarReq.setLng(""+i);
 						String request = kuaidiNearByCarReq.makeRequest();
-						request = "http://c2.kuaidadi.com/taxi/a/js.do?sign=6825c788c6d66b3e1a86d16baa1ab1c5085ce63701a613afcc08&ver=3.8.1&os=android&lat=31.276718169934956&lng=120.7579297025087&osver=5.0.2&ts=" + Long.toString(System.currentTimeMillis()) + "&cmd=50306";
+						//request = "http://c2.kuaidadi.com/taxi/a/js.do?sign=6825c788c6d66b3e1a86d16baa1ab1c5085ce63701a613afcc08&ver=3.8.1&os=android&lat=31.276718169934956&lng=120.7579297025087&osver=5.0.2&ts=" + Long.toString(System.currentTimeMillis()) + "&cmd=50306";
 						String body = kuaidiNearByCarReq.makeBody();
-						body = "{\"lat\":"+31.276718169934956+",\"lng\":"+120.7579297025087+",\"num\":\"0\"}";		
+						//body = "{\"lat\":"+31.276718169934956+",\"lng\":"+120.7579297025087+",\"num\":\"0\"}";		
 						String result = HttpPostData(request, body);
 						if(result.length() < 10)
 						{
@@ -312,34 +317,58 @@ public class MainActivity extends Activity{
 								continue;
 							}
 							JSONObject resultObj = jsonObj.getJSONObject("result");
-							int count = resultObj.getInt("count");
-							JSONArray carsObj = resultObj.getJSONArray("cars");
-							if(count < carsObj.length())
+							if(car.equalsIgnoreCase("zhuanche"))
 							{
-								count = carsObj.length();
-							}
-							for(int c = 0; c < count; c++)
+								JSONArray carsObj = resultObj.getJSONArray("dripos");
+								int count = carsObj.length();
+								for(int c = 0; c < count; c++)
+								{
+									UpdateUI(MSG_JSON, "response car " + c);
+									JSONObject carObj = carsObj.getJSONObject(c);
+									double carLat = carObj.getDouble("lat");
+									double carLng = carObj.getDouble("lng");
+									
+									String line = "," + 
+												city + "," +
+												i + "," +
+												j + "," +
+												carLat + "," + 
+												carLng;
+	
+									//gLogger.debug(line);
+									writeLine(line);
+								}
+							}else
 							{
-								UpdateUI(MSG_JSON, "response car " + c);
-								JSONObject carObj = carsObj.getJSONObject(c);
-								double carLat = carObj.getDouble("lat");
-								double carLng = carObj.getDouble("lng");
-								int carDriverId = carObj.getInt("driver_id");
-								int carDriverType = carObj.getInt("driver_type");
-								int carType = carObj.getInt("car_type");
-								
-								String line = "," + 
-											city + "," +
-											i + "," +
-											j + "," +
-											carLat + "," + 
-											carLng + "," + 
-											carDriverId + "," +
-											carDriverType + "," +
-											carType;
-
-								//gLogger.debug(line);
-								writeLine(line);
+								int count = resultObj.getInt("count");
+								JSONArray carsObj = resultObj.getJSONArray("cars");
+								if(count < carsObj.length())
+								{
+									count = carsObj.length();
+								}
+								for(int c = 0; c < count; c++)
+								{
+									UpdateUI(MSG_JSON, "response car " + c);
+									JSONObject carObj = carsObj.getJSONObject(c);
+									double carLat = carObj.getDouble("lat");
+									double carLng = carObj.getDouble("lng");
+									int carDriverId = carObj.getInt("driver_id");
+									int carDriverType = carObj.getInt("driver_type");
+									int carType = carObj.getInt("car_type");
+									
+									String line = "," + 
+												city + "," +
+												i + "," +
+												j + "," +
+												carLat + "," + 
+												carLng + "," + 
+												carDriverId + "," +
+												carDriverType + "," +
+												carType;
+	
+									//gLogger.debug(line);
+									writeLine(line);
+								}
 							}
 						}catch(JSONException e)
 						{
